@@ -69,7 +69,7 @@ const SiteManager = () => {
     try {
         const res = await axios.post(`${API_URL}/api/content`, { 
             type: 'gallery', 
-            data: { imageUrl: url, caption: 'Farm Life' } 
+            data: { imageUrl: url, caption: 'Palme Life' } 
         });
         setGalleryImages([...galleryImages, res.data]);
         setRefreshKey(prev => prev + 1);
@@ -199,7 +199,7 @@ const SiteManager = () => {
         {activeTab === 'gallery' && (
           <div className="space-y-6 animate-fade-in-up">
             <div className="flex justify-between items-center">
-               <h3 className="font-bold text-lg text-gray-800 dark:text-white">Farm Gallery Photos</h3>
+               <h3 className="font-bold text-lg text-gray-800 dark:text-white">Palme Gallery Photos</h3>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                {galleryImages.map((img) => (
