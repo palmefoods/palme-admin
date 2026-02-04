@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
-import { Plus, Search, Edit, Trash2, X, Image as ImageIcon, TrendingUp, Package, AlertCircle, Tag, Save, Layers, LayoutGrid, List } from 'lucide-react'; 
+import { Plus, Search, Edit, Trash2, X, Image as ImageIcon, TrendingUp, Package, AlertCircle, Save, Layers, LayoutGrid, List } from 'lucide-react'; 
 import ImageUpload from '../components/ImageUpload'; 
+import toast from 'react-hot-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -13,11 +14,9 @@ const ProductManager = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   
-  
   const [viewMode, setViewMode] = useState('list'); 
   const [searchTerm, setSearchTerm] = useState('');
 
-  
   const stats = {
     total: products.length,
     lowStock: products.filter(p => (p.stock || 0) < 10).length, 
@@ -25,18 +24,14 @@ const ProductManager = () => {
   };
   
   const [formData, setFormData] = useState({
-    name: '', size: '500ml', price: '', discountPrice: '', discountCode: '', weightKg: '', description: '', image: '', stock: ''
+    name: '', size: '500ml', price: '', weightKg: '', description: '', image: '', stock: ''
   });
 
   useEffect(() => {
     fetchProducts();
-    
-    
     const params = new URLSearchParams(location.search);
     const searchParam = params.get('search');
-    if (searchParam) {
-        setSearchTerm(searchParam);
-    }
+    if (searchParam) setSearchTerm(searchParam);
   }, [location.search]);
 
   const fetchProducts = async () => {
@@ -45,7 +40,7 @@ const ProductManager = () => {
       const res = await axios.get(`${API_URL}/api/products`);
       setProducts(res.data);
     } catch (err) {
-      console.error("Failed to load products");
+      toast.error("Failed to load products");
     } finally {
       setLoading(false);
     }
@@ -56,8 +51,9 @@ const ProductManager = () => {
     try {
       await axios.delete(`${API_URL}/api/products/${id}`);
       fetchProducts();
+      toast.success("Product deleted");
     } catch (err) {
-      alert("Failed to delete");
+      toast.error("Failed to delete");
     }
   };
 
@@ -67,8 +63,6 @@ const ProductManager = () => {
       name: product.name,
       size: product.size,
       price: product.price,
-      discountPrice: product.discountPrice || '', 
-      discountCode: product.discountCode || '', 
       weightKg: product.weightKg || '',
       description: product.description,
       image: product.image || '',
@@ -80,30 +74,35 @@ const ProductManager = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...formData,
+        price: Number(formData.price),
+        stock: Number(formData.stock),
+        weightKg: Number(formData.weightKg) || 0
+      };
+
       if (editingProduct) {
-        await axios.put(`${API_URL}/api/products/${editingProduct._id}`, formData);
+        await axios.put(`${API_URL}/api/products/${editingProduct._id}`, payload);
+        toast.success("Product updated");
       } else {
-        await axios.post(`${API_URL}/api/products`, formData);
+        await axios.post(`${API_URL}/api/products`, payload);
+        toast.success("Product created");
       }
       setShowModal(false);
       setEditingProduct(null);
-      
-      setFormData({ name: '', size: '500ml', price: '', discountPrice: '', discountCode: '', weightKg: '', description: '', image: '', stock: '' });
+      setFormData({ name: '', size: '500ml', price: '', weightKg: '', description: '', image: '', stock: '' });
       fetchProducts();
     } catch (err) {
-      alert("Operation failed");
+      toast.error("Operation failed");
     }
   };
 
-  
   const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    p.discountCode?.toLowerCase().includes(searchTerm.toLowerCase())
+    p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="space-y-8">
-      
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm flex items-center justify-between transition-colors">
@@ -131,8 +130,6 @@ const ProductManager = () => {
 
       
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-        
-        
         <div className="relative w-full md:w-96">
           <Search className="absolute left-3 top-3 text-gray-400" size={20} />
           <input 
@@ -144,7 +141,6 @@ const ProductManager = () => {
         </div>
 
         <div className="flex gap-2 w-full md:w-auto">
-            
             <div className="flex bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-1">
                 <button 
                     onClick={() => setViewMode('list')} 
@@ -161,7 +157,7 @@ const ProductManager = () => {
             </div>
 
             <button 
-            onClick={() => { setEditingProduct(null); setFormData({ name: '', size: '500ml', price: '', discountPrice: '', discountCode: '', weightKg: '', description: '', image: '', stock: '' }); setShowModal(true); }}
+            onClick={() => { setEditingProduct(null); setFormData({ name: '', size: '500ml', price: '', weightKg: '', description: '', image: '', stock: '' }); setShowModal(true); }}
             className="bg-palmeGreen text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-green-800 transition-colors flex-1 md:flex-initial justify-center"
             >
             <Plus size={20} /> Add Product
@@ -169,7 +165,6 @@ const ProductManager = () => {
         </div>
       </div>
 
-      
       
       {loading ? (
            <div className="p-12 text-center text-gray-400 animate-pulse">Loading Inventory...</div>
@@ -179,7 +174,6 @@ const ProductManager = () => {
            </div>
       ) : (
           <>
-            
             {viewMode === 'list' && (
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors">
                     <div className="overflow-x-auto">
@@ -189,7 +183,7 @@ const ProductManager = () => {
                             <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Product</th>
                             <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Stock</th> 
                             <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Price</th>
-                            <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Promo Code</th> 
+                            <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Weight</th> 
                             <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Size</th>
                             <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-right">Actions</th>
                             </tr>
@@ -205,7 +199,9 @@ const ProductManager = () => {
                                     <ImageIcon size={20} className="text-gray-400"/>
                                     )}
                                 </div>
-                                <span className="font-bold text-gray-800 dark:text-white">{p.name}</span>
+                                <div>
+                                    <p className="font-bold text-gray-800 dark:text-white">{p.name}</p>
+                                </div>
                                 </td>
                                 
                                 <td className="p-4">
@@ -214,29 +210,16 @@ const ProductManager = () => {
                                         ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' 
                                         : 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
                                     }`}>
-                                        {p.stock || 0} Units
+                                            {p.stock || 0} Units
                                     </span>
                                 </td>
 
                                 <td className="p-4">
-                                {p.discountPrice ? (
-                                    <div>
-                                    <span className="text-palmeRed font-bold">₦{Number(p.discountPrice).toLocaleString()}</span>
-                                    <span className="text-gray-400 text-xs line-through block">₦{Number(p.price).toLocaleString()}</span>
-                                    </div>
-                                ) : (
                                     <span className="font-bold text-gray-800 dark:text-white">₦{Number(p.price).toLocaleString()}</span>
-                                )}
                                 </td>
                                 
-                                <td className="p-4">
-                                {p.discountCode ? (
-                                    <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-bold px-2 py-1 rounded flex items-center gap-1 w-fit">
-                                        <Tag size={12} /> {p.discountCode}
-                                    </span>
-                                ) : (
-                                    <span className="text-gray-300 dark:text-gray-600 text-xs">-</span>
-                                )}
+                                <td className="p-4 text-gray-600 dark:text-gray-300">
+                                    {p.weightKg ? `${p.weightKg}kg` : '-'}
                                 </td>
                                 <td className="p-4 text-gray-600 dark:text-gray-300">{p.size}</td>
                                 <td className="p-4 text-right space-x-2">
@@ -251,7 +234,6 @@ const ProductManager = () => {
                 </div>
             )}
 
-            
             {viewMode === 'grid' && (
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {filteredProducts.map((p) => (
@@ -273,17 +255,14 @@ const ProductManager = () => {
                                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                                         (p.stock || 0) < 10 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
                                     }`}>
-                                        {p.stock} left
+                                            {p.stock} left
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-end">
                                     <div>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">{p.size}</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">{p.size} • {p.weightKg || 0}kg</p>
                                         <p className="font-bold text-lg text-palmeGreen mt-1">₦{Number(p.price).toLocaleString()}</p>
                                     </div>
-                                    {p.discountCode && (
-                                        <span className="text-[10px] bg-purple-100 text-purple-600 px-2 py-1 rounded font-bold">{p.discountCode}</span>
-                                    )}
                                 </div>
                             </div>
                         </div>
@@ -344,6 +323,7 @@ const ProductManager = () => {
                     <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Weight (Kg) - For Shipping</label>
                     <input 
                         type="number" 
+                        step="0.1"
                         className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
                         name="weightKg" 
                         value={formData.weightKg} 
@@ -353,30 +333,9 @@ const ProductManager = () => {
                  </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-6"> 
-                <div>
-                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Regular Price (₦)</label>
+              <div>
+                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Price (₦)</label>
                    <input type="number" className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" name="price" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} required />
-                </div>
-                <div>
-                   <label className="block text-xs font-bold text-palmeRed uppercase mb-1">Discount Price</label>
-                   <input type="number" className="w-full p-3 border border-palmeRed/30 bg-red-50 dark:bg-red-900/20 dark:border-red-900/50 dark:text-white rounded-lg" name="discountPrice" value={formData.discountPrice} onChange={(e) => setFormData({...formData, discountPrice: e.target.value})} placeholder="Optional" />
-                </div>
-                
-                <div>
-                   <label className="block text-xs font-bold text-purple-600 dark:text-purple-400 uppercase mb-1">Promo Code</label>
-                   <div className="relative">
-                        <Tag className="absolute left-3 top-3.5 text-purple-300" size={16} />
-                        <input 
-                            type="text" 
-                            className="w-full pl-9 p-3 border border-purple-200 bg-purple-50 dark:bg-purple-900/20 dark:border-purple-800 dark:text-white rounded-lg focus:ring-purple-200 focus:border-purple-400" 
-                            name="discountCode" 
-                            value={formData.discountCode} 
-                            onChange={(e) => setFormData({...formData, discountCode: e.target.value})} 
-                            placeholder="e.g. VIP20" 
-                        />
-                   </div>
-                </div>
               </div>
 
               <div>

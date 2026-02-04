@@ -33,7 +33,6 @@ const OrderManager = () => {
 
   const handleOpenModal = (order) => {
     setSelectedOrder(order);
-   
     setNewStatus(order.orderStatus || 'Pending');
   };
 
@@ -44,11 +43,7 @@ const OrderManager = () => {
       const res = await axios.put(`${API_URL}/api/orders/${selectedOrder._id}`, {
           status: newStatus 
       });
-      
-     
       setOrders(prev => prev.map(o => o._id === selectedOrder._id ? res.data : o));
-      
-     
       setSelectedOrder(res.data);
       toast.success(`Order updated to ${newStatus}`);
   } catch (err) {
@@ -57,6 +52,7 @@ const OrderManager = () => {
       setUpdatingStatus(false);
   }
 };
+
   const handlePrintInvoice = () => {
     if (!selectedOrder) return;
     const invoiceWindow = window.open('', 'PRINT', 'height=800,width=800');
@@ -327,9 +323,37 @@ const OrderManager = () => {
                         ))}
                     </div>
                     
-                    <div className="flex justify-between items-center pt-4 border-t dark:border-gray-700">
-                        <span className="text-gray-500 font-bold">Total Amount</span>
-                        <span className="text-2xl font-bold text-palmeGreen">₦{selectedOrder.totalAmount.toLocaleString()}</span>
+                    
+                    <div className="mt-4 space-y-2 border-t dark:border-gray-700 pt-4">
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-500">Subtotal</span>
+                            <span className="font-medium dark:text-gray-200">
+                                ₦{(selectedOrder.subtotal || selectedOrder.items.reduce((acc, i) => acc + (i.price * (i.qty||i.quantity)), 0)).toLocaleString()}
+                            </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-500">Shipping Fee {selectedOrder.totalWeight ? `(${selectedOrder.totalWeight}kg)` : ''}</span>
+                            <span className="font-medium dark:text-gray-200">₦{selectedOrder.shippingFee?.toLocaleString() || '0'}</span>
+                        </div>
+                        
+                        {selectedOrder.discountAmount > 0 && (
+                            <div className="flex justify-between text-sm text-green-600">
+                                <span>Discount</span>
+                                <span>-₦{selectedOrder.discountAmount.toLocaleString()}</span>
+                            </div>
+                        )}
+                        
+                        {selectedOrder.tipAmount > 0 && (
+                            <div className="flex justify-between text-sm text-orange-500">
+                                <span>Tip</span>
+                                <span>+₦{selectedOrder.tipAmount.toLocaleString()}</span>
+                            </div>
+                        )}
+
+                        <div className="flex justify-between items-center pt-2 border-t dark:border-gray-700 mt-2">
+                            <span className="text-gray-900 dark:text-white font-bold text-lg">Total Paid</span>
+                            <span className="text-2xl font-bold text-palmeGreen">₦{selectedOrder.totalAmount.toLocaleString()}</span>
+                        </div>
                     </div>
                 </div>
             </div>

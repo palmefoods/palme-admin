@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
-  LayoutDashboard, ShoppingCart, Package, MapPin, Users, Settings, LogOut, Bell, Search, Megaphone, Menu, X, AlertCircle, Clock 
+  LayoutDashboard, ShoppingCart, Package, MapPin, Users, Settings, LogOut, Bell, Search, Megaphone, Menu, X, AlertCircle, Clock, Tag 
 } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -12,17 +12,14 @@ const AdminLayout = ({ children }) => {
   const navigate = useNavigate(); 
   const notifRef = useRef(null);
   
- 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [adminName, setAdminName] = useState('Admin');
   
- 
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
- 
   useEffect(() => {
     const userStr = localStorage.getItem('palme_user');
     if (userStr) {
@@ -88,14 +85,12 @@ const AdminLayout = ({ children }) => {
     navigate('/login');
   };
 
- 
   const handleGlobalSearch = (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
 
     const query = searchQuery.trim();
     
-   
    
     const isOrder = 
         query.toUpperCase().includes('ORD') || 
@@ -114,6 +109,7 @@ const AdminLayout = ({ children }) => {
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
     { icon: ShoppingCart, label: 'Orders', path: '/orders' }, 
     { icon: Package, label: 'Products', path: '/products' }, 
+    { icon: Tag, label: 'Coupons', path: '/coupons' },
     { icon: Users, label: 'Customers', path: '/customers' },
     { icon: MapPin, label: 'Logistics', path: '/locations' },
     { icon: Megaphone, label: 'Site Content', path: '/site-content' }, 
@@ -127,7 +123,7 @@ const AdminLayout = ({ children }) => {
       <div className={`fixed inset-0 bg-black/50 z-20 md:hidden ${sidebarOpen ? 'block' : 'hidden'}`} onClick={() => setSidebarOpen(false)}></div>
 
       
-      <aside className={`fixed md:sticky top-0 h-screen w-64 bg-white dark:bg-gray-800 border-r border-gray-100 dark:border-gray-700 flex flex-col z-30 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+      <aside className={`fixed md:sticky top-0 h-screen w-64 bg-white dark:bg-gray-800 border-r border-gray-100 dark:border-gray-700 flex flex-col z-30 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'}`}>
         <div className="p-8 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white tracking-tight flex items-center gap-2">
             <span className="bg-palmeGreen text-white rounded-xl w-8 h-8 flex items-center justify-center text-sm font-bold shadow-green-200">P</span>
@@ -169,7 +165,7 @@ const AdminLayout = ({ children }) => {
       </aside>
 
       
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto">
+      <main className="flex-1 flex flex-col h-screen overflow-y-auto relative z-0">
         
         
         <header className="bg-white dark:bg-gray-800 h-20 px-8 flex items-center justify-between border-b border-gray-100 dark:border-gray-700 sticky top-0 z-10 transition-colors duration-200">

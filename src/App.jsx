@@ -1,17 +1,17 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';  
-import Customers from './pages/Customers';  
+import Dashboard from './pages/Dashboard';   
+import Customers from './pages/Customers';   
 import AdminLayout from './components/AdminLayout'; 
 import ProductManager from './pages/ProductManager';
 import LocationManager from './pages/LocationManager';
 import SiteManager from './pages/SiteManager';
 import Settings from './pages/Settings';
 import OrderManager from './pages/OrderManager'; 
+import Coupons from './pages/Coupons'; 
 import Login from './pages/Login'; 
 import ProtectedRoute from './components/ProtectedRoute';
 import { Toaster } from 'react-hot-toast';  
-
 
 function App() {
   return (
@@ -19,10 +19,10 @@ function App() {
         <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
       <Routes>
         
-        
+       
         <Route path="/login" element={<Login />} />
 
-        
+       
         <Route path="/*" element={
           <ProtectedRoute>
             <AdminLayout>
@@ -30,6 +30,7 @@ function App() {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/orders" element={<OrderManager />} />
                 <Route path="/products" element={<ProductManager />} />
+                <Route path="/coupons" element={<Coupons />} />
                 <Route path="/locations" element={<LocationManager />} />
                 <Route path="/site-content" element={<SiteManager />} />
                 <Route path="/settings" element={<Settings />} />

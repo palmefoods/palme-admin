@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { TrendingUp, ShoppingBag, Users, Clock } from 'lucide-react';
+import { TrendingUp, ShoppingBag, Users, Clock, Award, Package } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -9,6 +9,8 @@ const Dashboard = () => {
   const [stats, setStats] = useState({ revenue: 0, orders: 0, customers: 0, pending: 0 });
   const [recentOrders, setRecentOrders] = useState([]);
   const [chartData, setChartData] = useState([]); 
+  const [topProducts, setTopProducts] = useState([]);
+  const [topCustomers, setTopCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,7 +32,6 @@ const Dashboard = () => {
         });
 
         
-        
         const sortedOrders = orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setRecentOrders(sortedOrders.slice(0, 5));
 
@@ -42,18 +43,46 @@ const Dashboard = () => {
         }).reverse();
 
         const realChartData = last7Days.map(dateStr => {
-            
             const daySales = orders
                 .filter(o => o.createdAt && o.createdAt.startsWith(dateStr))
                 .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-
             
             const displayDate = new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            
             return { name: displayDate, sales: daySales };
         });
-
         setChartData(realChartData);
+
+        
+        const productMap = {};
+        orders.forEach(order => {
+            if(order.items) {
+                order.items.forEach(item => {
+                    const qty = item.qty || item.quantity || 1;
+                    if(!productMap[item.name]) productMap[item.name] = 0;
+                    productMap[item.name] += qty;
+                });
+            }
+        });
+        const sortedProducts = Object.entries(productMap)
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5); 
+        setTopProducts(sortedProducts);
+
+        
+        const customerMap = {};
+        orders.forEach(order => {
+            if(order.customer && order.customer.email) {
+                const email = order.customer.email;
+                if(!customerMap[email]) customerMap[email] = { name: order.customer.name, spent: 0, count: 0 };
+                customerMap[email].spent += order.totalAmount;
+                customerMap[email].count += 1;
+            }
+        });
+        const sortedCustomers = Object.values(customerMap)
+            .sort((a, b) => b.spent - a.spent)
+            .slice(0, 5); 
+        setTopCustomers(sortedCustomers);
 
       } catch (err) {
         console.error("Dashboard Error:", err);
@@ -120,16 +149,60 @@ const Dashboard = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-bold text-palmeGreen">₦{order.totalAmount.toLocaleString()}</p>
-                  <p className="text-[10px] text-gray-400">
-                      
-                      {new Date(order.createdAt || order.date).toLocaleDateString()}
-                  </p>
+                  <p className="text-[10px] text-gray-400">{new Date(order.createdAt || order.date).toLocaleDateString()}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
       </div>
+
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <h3 className="font-bold text-gray-700 dark:text-white mb-4 flex items-center gap-2">
+                    <Package className="text-palmeGreen" size={20}/> Most Sold Products
+                </h3>
+                <div className="space-y-3">
+                    {topProducts.length === 0 ? <p className="text-gray-400 text-sm">No sales yet.</p> : topProducts.map((p, i) => (
+                        <div key={i} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <span className="font-bold text-gray-400 text-xs">#{i+1}</span>
+                                <span className="text-sm font-medium text-gray-800 dark:text-white">{p.name}</span>
+                            </div>
+                            <span className="text-xs font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">
+                                {p.count} Sold
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <h3 className="font-bold text-gray-700 dark:text-white mb-4 flex items-center gap-2">
+                    <Award className="text-yellow-500" size={20}/> Loyalty Leaderboard
+                </h3>
+                <div className="space-y-3">
+                    {topCustomers.length === 0 ? <p className="text-gray-400 text-sm">No customers yet.</p> : topCustomers.map((c, i) => (
+                        <div key={i} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <span className="font-bold text-gray-400 text-xs">#{i+1}</span>
+                                <span className="text-sm font-medium text-gray-800 dark:text-white">{c.name}</span>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-sm font-bold text-palmeGreen">₦{c.spent.toLocaleString()}</p>
+                                <p className="text-[10px] text-gray-400">{c.count} Orders</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+      </div>
+
     </div>
   );
 };

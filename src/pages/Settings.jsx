@@ -165,39 +165,7 @@ const Settings = () => {
                  <div className={`absolute top-1 left-1 bg-white w-6 h-6 rounded-full transition-transform duration-300 ${isDark ? 'translate-x-8' : ''}`}></div>
               </button>
            </div>
-           <div className="pt-8 border-t border-gray-100 dark:border-gray-700 mt-8">
-                <h3 className="text-lg font-bold text-red-600 mb-4 flex items-center gap-2">
-                    ⚠️ Danger Zone
-                </h3>
-                <div className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 p-6 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <div>
-                        <h4 className="font-bold text-red-800 dark:text-red-400">Reset Database</h4>
-                        <p className="text-sm text-red-600/80 dark:text-red-400/70 mt-1">
-                            This will delete <strong>ALL Orders</strong> and <strong>Customer Accounts</strong>. 
-                            <br/>Products, Admins, and Settings will be safe.
-                        </p>
-                    </div>
-                    <button 
-                        onClick={async () => {
-                            if (window.confirm("ARE YOU SURE? This cannot be undone.")) {
-                                const doubleCheck = window.prompt("Type 'DELETE' to confirm.");
-                                if (doubleCheck === 'DELETE') {
-                                    try {
-                                        await axios.delete(`${API_URL}/api/nuke-db`);
-                                        alert("Database Reset Complete. Clean slate!");
-                                        window.location.reload();
-                                    } catch(err) {
-                                        alert("Failed to reset DB.");
-                                    }
-                                }
-                            }
-                        }}
-                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg shadow-red-600/20 transition-all whitespace-nowrap"
-                    >
-                        Reset Data
-                    </button>
-                </div>
-            </div>
+          
         </div>
         
       )}

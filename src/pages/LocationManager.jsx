@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { MapPin, Navigation, Plus, Trash2, Save, X, Search } from 'lucide-react';
+import { MapPin, Navigation, Plus, Trash2, Save, X, Search, Edit, AlertCircle } from 'lucide-react'; 
+import toast from 'react-hot-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -11,11 +12,14 @@ const LocationManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   
   
+  const [editingLocation, setEditingLocation] = useState(null);
+
   const [formData, setFormData] = useState({
     state: '', 
     parkName: '', 
     address: '', 
-    adminNote: ''
+    adminNote: '',
+    basePrice: '' 
   });
 
   const nigerianStates = [
@@ -29,7 +33,6 @@ const LocationManager = () => {
   const fetchLocations = async () => {
     try {
       const res = await axios.get(`${API_URL}/api/locations`);
-      
       if (Array.isArray(res.data)) {
           setLocations(res.data);
       }
@@ -45,34 +48,57 @@ const LocationManager = () => {
     try {
        await axios.delete(`${API_URL}/api/locations/${id}`); 
        setLocations(prev => prev.filter(l => l._id !== id));
-    } catch (err) { alert("Failed to delete"); }
+       toast.success("Station Deleted");
+    } catch (err) { toast.error("Failed to delete"); }
+  };
+
+  
+  const handleEdit = (loc) => {
+    setEditingLocation(loc);
+    setFormData({
+        state: loc.state || '',
+        parkName: loc.name, 
+        address: loc.address || '',
+        adminNote: loc.adminNote || '',
+        basePrice: loc.basePrice || ''
+    });
+    setShowModal(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      
       const payload = { 
         ...formData, 
         name: formData.parkName, 
-        type: 'Pickup Station', 
-        basePrice: 0  
+        type: 'park', 
+        basePrice: Number(formData.basePrice) || 0
       };
 
-      const res = await axios.post(`${API_URL}/api/locations`, payload);
-      setLocations([...locations, res.data]);
+      if (editingLocation) {
+        
+        const res = await axios.put(`${API_URL}/api/locations/${editingLocation._id}`, payload);
+        setLocations(locations.map(l => l._id === editingLocation._id ? res.data : l));
+        toast.success("Station Updated!");
+      } else {
+        
+        const res = await axios.post(`${API_URL}/api/locations`, payload);
+        setLocations([...locations, res.data]);
+        toast.success("Station Added!");
+      }
+
       setShowModal(false);
-      setFormData({ state: '', parkName: '', address: '', adminNote: '' });
-      alert("Station Added Successfully!");
+      setEditingLocation(null);
+      setFormData({ state: '', parkName: '', address: '', adminNote: '', basePrice: '' });
+      
     } catch (err) {
       console.error(err);
-      alert("Failed to add location. Check backend console.");
+      toast.error("Failed to save location.");
     }
   };
 
-  
   const filteredLocations = locations.filter(l => 
-    l.parkName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (l.name || l.parkName)?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     l.state?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -89,7 +115,6 @@ const LocationManager = () => {
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
-           
            <div className="relative flex-1 md:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input 
@@ -100,7 +125,14 @@ const LocationManager = () => {
               />
            </div>
 
-           <button onClick={() => setShowModal(true)} className="bg-palmeGreen text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-green-800 transition-colors shadow-lg shadow-green-100 dark:shadow-none whitespace-nowrap">
+           <button 
+                onClick={() => { 
+                    setEditingLocation(null); 
+                    setFormData({ state: '', parkName: '', address: '', adminNote: '', basePrice: '' }); 
+                    setShowModal(true); 
+                }} 
+                className="bg-palmeGreen text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-green-800 transition-colors shadow-lg shadow-green-100 dark:shadow-none whitespace-nowrap"
+            >
               <Plus size={20} /> Add Station
            </button>
         </div>
@@ -120,23 +152,35 @@ const LocationManager = () => {
            filteredLocations.map((loc) => (
              <div key={loc._id} className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all group relative">
                 
-                
                 <div className="flex justify-between items-start mb-4">
                    <span className="px-3 py-1 bg-palmeGreen/10 text-palmeGreen text-xs font-bold uppercase tracking-wider rounded-full">
                      {loc.state || 'Unknown State'}
                    </span>
-                   <button onClick={() => handleDelete(loc._id)} className="text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition-colors">
-                      <Trash2 size={18} />
-                   </button>
+                   <div className="flex gap-2">
+                       
+                       <button onClick={() => handleEdit(loc)} className="text-gray-300 dark:text-gray-600 hover:text-blue-500 transition-colors">
+                          <Edit size={18} />
+                       </button>
+                       <button onClick={() => handleDelete(loc._id)} className="text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition-colors">
+                          <Trash2 size={18} />
+                       </button>
+                   </div>
                 </div>
                 
-                
                 <div className="space-y-3">
-                   <h3 className="text-lg font-bold text-gray-800 dark:text-white leading-tight">{loc.parkName}</h3>
+                   <h3 className="text-lg font-bold text-gray-800 dark:text-white leading-tight">{loc.name || loc.parkName}</h3>
                    
                    <div className="flex items-start gap-2">
                       <MapPin size={16} className="text-gray-400 mt-1 shrink-0" />
                       <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{loc.address}</p>
+                   </div>
+
+                   
+                   <div className="flex items-center gap-2 mt-2">
+                        <span className="text-xs font-bold text-gray-400 uppercase">Shipping Fee:</span>
+                        <span className="text-sm font-bold text-gray-800 dark:text-white">
+                            {loc.basePrice ? `₦${Number(loc.basePrice).toLocaleString()}` : 'Free'}
+                        </span>
                    </div>
 
                    {loc.adminNote && (
@@ -156,9 +200,9 @@ const LocationManager = () => {
       
       {showModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md shadow-2xl animate-fade-in-up p-8 transition-colors">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md shadow-2xl animate-fade-in-up p-8 transition-colors max-h-[90vh] overflow-y-auto">
              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-gray-800 dark:text-white">Add New Station</h3>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white">{editingLocation ? 'Edit Station' : 'Add New Station'}</h3>
                 <button onClick={() => setShowModal(false)}><X className="text-gray-400 hover:text-red-500" /></button>
              </div>
 
@@ -179,7 +223,6 @@ const LocationManager = () => {
                    </select>
                 </div>
 
-                
                 <div>
                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Station Name</label>
                   <input 
@@ -190,8 +233,21 @@ const LocationManager = () => {
                     onChange={(e) => setFormData({...formData, parkName: e.target.value})}
                   />
                 </div>
-
                 
+                
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Shipping Price (₦)</label>
+                  <input 
+                    type="number"
+                    className="w-full p-3 border rounded-lg focus:border-palmeGreen outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
+                    required 
+                    placeholder="e.g. 2500"
+                    value={formData.basePrice}
+                    onChange={(e) => setFormData({...formData, basePrice: e.target.value})}
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">This amount will be added to the customer's total at checkout.</p>
+                </div>
+
                 <div>
                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Full Address / Description</label>
                   <textarea 
@@ -203,7 +259,6 @@ const LocationManager = () => {
                   />
                 </div>
 
-                
                 <div>
                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Internal Note (Hidden)</label>
                   <input 
@@ -215,7 +270,7 @@ const LocationManager = () => {
                 </div>
 
                 <button className="w-full bg-palmeGreen text-white font-bold py-4 rounded-xl hover:bg-green-800 transition-colors flex items-center justify-center gap-2 mt-4 shadow-lg shadow-green-900/20">
-                   <Save size={20} /> Save Station
+                   <Save size={20} /> {editingLocation ? 'Update Station' : 'Save Station'}
                 </button>
              </form>
           </div>
