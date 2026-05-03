@@ -24,7 +24,8 @@ const ProductManager = () => {
   };
   
   const [formData, setFormData] = useState({
-    name: '', size: '500ml', price: '', weightKg: '', description: '', image: '', stock: ''
+    name: '', size: '500ml', price: '', weightKg: '', description: '', image: '', stock: '',
+    isWholesale: false, moq: '', wholesalePrice: '' 
   });
 
   useEffect(() => {
@@ -66,7 +67,10 @@ const ProductManager = () => {
       weightKg: product.weightKg || '',
       description: product.description,
       image: product.image || '',
-      stock: product.stock || 0 
+      stock: product.stock || 0,
+      isWholesale: product.isWholesale || false, 
+      moq: product.moq || '',
+      wholesalePrice: product.wholesalePrice || ''
     });
     setShowModal(true);
   };
@@ -78,7 +82,10 @@ const ProductManager = () => {
         ...formData,
         price: Number(formData.price),
         stock: Number(formData.stock),
-        weightKg: Number(formData.weightKg) || 0
+        weightKg: Number(formData.weightKg) || 0,
+        isWholesale: Boolean(formData.isWholesale), 
+        moq: Number(formData.moq) || 0,
+        wholesalePrice: Number(formData.wholesalePrice) || 0
       };
 
       if (editingProduct) {
@@ -90,7 +97,7 @@ const ProductManager = () => {
       }
       setShowModal(false);
       setEditingProduct(null);
-      setFormData({ name: '', size: '500ml', price: '', weightKg: '', description: '', image: '', stock: '' });
+      setFormData({ name: '', size: '500ml', price: '', weightKg: '', description: '', image: '', stock: '', isWholesale: false, moq: '', wholesalePrice: '' });
       fetchProducts();
     } catch (err) {
       toast.error("Operation failed");
@@ -157,7 +164,7 @@ const ProductManager = () => {
             </div>
 
             <button 
-            onClick={() => { setEditingProduct(null); setFormData({ name: '', size: '500ml', price: '', weightKg: '', description: '', image: '', stock: '' }); setShowModal(true); }}
+            onClick={() => { setEditingProduct(null); setFormData({ name: '', size: '500ml', price: '', weightKg: '', description: '', image: '', stock: '', isWholesale: false, moq: '', wholesalePrice: '' }); setShowModal(true); }}
             className="bg-palmeGreen text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-green-800 transition-colors flex-1 md:flex-initial justify-center"
             >
             <Plus size={20} /> Add Product
@@ -183,7 +190,6 @@ const ProductManager = () => {
                             <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Product</th>
                             <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Stock</th> 
                             <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Price</th>
-                            <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Weight</th> 
                             <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Size</th>
                             <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-right">Actions</th>
                             </tr>
@@ -201,6 +207,8 @@ const ProductManager = () => {
                                 </div>
                                 <div>
                                     <p className="font-bold text-gray-800 dark:text-white">{p.name}</p>
+                                    {/* 🚀 Shows if wholesale is active in list */}
+                                    {p.isWholesale && <span className="text-[10px] bg-green-100 text-palmeGreen px-2 py-0.5 rounded uppercase font-bold">Wholesale Tier Active</span>}
                                 </div>
                                 </td>
                                 
@@ -218,9 +226,6 @@ const ProductManager = () => {
                                     <span className="font-bold text-gray-800 dark:text-white">₦{Number(p.price).toLocaleString()}</span>
                                 </td>
                                 
-                                <td className="p-4 text-gray-600 dark:text-gray-300">
-                                    {p.weightKg ? `${p.weightKg}kg` : '-'}
-                                </td>
                                 <td className="p-4 text-gray-600 dark:text-gray-300">{p.size}</td>
                                 <td className="p-4 text-right space-x-2">
                                 <button onClick={() => handleEdit(p)} className="text-blue-500 hover:text-blue-700 p-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded"><Edit size={18}/></button>
@@ -334,8 +339,34 @@ const ProductManager = () => {
               </div>
 
               <div>
-                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Price (₦)</label>
+                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Retail Price (₦)</label>
                    <input type="number" className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" name="price" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} required />
+              </div>
+
+              {/* 🚀 NEW: Wholesale UI Block */}
+              <div className="col-span-2 border-t border-gray-100 dark:border-gray-700 pt-6 mt-2">
+                  <label className="flex items-center gap-2 cursor-pointer mb-4">
+                      <input 
+                          type="checkbox" 
+                          checked={formData.isWholesale}
+                          onChange={(e) => setFormData({...formData, isWholesale: e.target.checked})}
+                          className="w-4 h-4 text-palmeGreen rounded focus:ring-palmeGreen"
+                      />
+                      <span className="font-bold text-gray-700 dark:text-gray-300">Enable Wholesale Tier</span>
+                  </label>
+                  
+                  {formData.isWholesale && (
+                      <div className="grid grid-cols-2 gap-6 bg-green-50 dark:bg-green-900/10 p-4 rounded-xl border border-green-100 dark:border-green-900/30 animate-fade-in-up">
+                          <div>
+                              <label className="block text-xs font-bold text-green-800 dark:text-green-400 uppercase mb-1">Min. Order Qty (MOQ)</label>
+                              <input type="number" className="w-full p-3 border rounded-lg bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" name="moq" value={formData.moq} onChange={(e) => setFormData({...formData, moq: e.target.value})} required={formData.isWholesale} placeholder="e.g. 50" />
+                          </div>
+                          <div>
+                              <label className="block text-xs font-bold text-green-800 dark:text-green-400 uppercase mb-1">Wholesale Price (₦)</label>
+                              <input type="number" className="w-full p-3 border rounded-lg bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" name="wholesalePrice" value={formData.wholesalePrice} onChange={(e) => setFormData({...formData, wholesalePrice: e.target.value})} required={formData.isWholesale} placeholder="Discounted Price" />
+                          </div>
+                      </div>
+                  )}
               </div>
 
               <div>
