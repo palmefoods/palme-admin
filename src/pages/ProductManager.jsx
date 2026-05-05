@@ -25,7 +25,8 @@ const ProductManager = () => {
   
   const [formData, setFormData] = useState({
     name: '', size: '500ml', price: '', weightKg: '', description: '', image: '', stock: '',
-    isWholesale: false, moq: '', wholesalePrice: '' 
+    isWholesale: false, moq: '', wholesalePrice: '',
+    isBulkSupply: false, bulkUnitLabel: 'Pack', bulkMinQty: '' 
   });
 
   useEffect(() => {
@@ -70,7 +71,10 @@ const ProductManager = () => {
       stock: product.stock || 0,
       isWholesale: product.isWholesale || false, 
       moq: product.moq || '',
-      wholesalePrice: product.wholesalePrice || ''
+      wholesalePrice: product.wholesalePrice || '',
+      isBulkSupply: product.isBulkSupply || false, 
+      bulkUnitLabel: product.bulkUnitLabel || 'Pack',
+      bulkMinQty: product.bulkMinQty || ''
     });
     setShowModal(true);
   };
@@ -85,7 +89,10 @@ const ProductManager = () => {
         weightKg: Number(formData.weightKg) || 0,
         isWholesale: Boolean(formData.isWholesale), 
         moq: Number(formData.moq) || 0,
-        wholesalePrice: Number(formData.wholesalePrice) || 0
+        wholesalePrice: Number(formData.wholesalePrice) || 0,
+        isBulkSupply: Boolean(formData.isBulkSupply), 
+        bulkUnitLabel: formData.bulkUnitLabel || 'Pack',
+        bulkMinQty: Number(formData.bulkMinQty) || 1
       };
 
       if (editingProduct) {
@@ -97,7 +104,7 @@ const ProductManager = () => {
       }
       setShowModal(false);
       setEditingProduct(null);
-      setFormData({ name: '', size: '500ml', price: '', weightKg: '', description: '', image: '', stock: '', isWholesale: false, moq: '', wholesalePrice: '' });
+      setFormData({ name: '', size: '500ml', price: '', weightKg: '', description: '', image: '', stock: '', isWholesale: false, moq: '', wholesalePrice: '', isBulkSupply: false, bulkUnitLabel: 'Pack', bulkMinQty: '' });
       fetchProducts();
     } catch (err) {
       toast.error("Operation failed");
@@ -164,7 +171,7 @@ const ProductManager = () => {
             </div>
 
             <button 
-            onClick={() => { setEditingProduct(null); setFormData({ name: '', size: '500ml', price: '', weightKg: '', description: '', image: '', stock: '', isWholesale: false, moq: '', wholesalePrice: '' }); setShowModal(true); }}
+            onClick={() => { setEditingProduct(null); setFormData({ name: '', size: '500ml', price: '', weightKg: '', description: '', image: '', stock: '', isWholesale: false, moq: '', wholesalePrice: '', isBulkSupply: false, bulkUnitLabel: 'Pack', bulkMinQty: '' }); setShowModal(true); }}
             className="bg-palmeGreen text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-green-800 transition-colors flex-1 md:flex-initial justify-center"
             >
             <Plus size={20} /> Add Product
@@ -207,8 +214,10 @@ const ProductManager = () => {
                                 </div>
                                 <div>
                                     <p className="font-bold text-gray-800 dark:text-white">{p.name}</p>
-                                    {/* 🚀 Shows if wholesale is active in list */}
-                                    {p.isWholesale && <span className="text-[10px] bg-green-100 text-palmeGreen px-2 py-0.5 rounded uppercase font-bold">Wholesale Tier Active</span>}
+                                    <div className="flex gap-2 mt-1">
+                                        {p.isWholesale && <span className="text-[10px] bg-green-100 text-palmeGreen px-2 py-0.5 rounded uppercase font-bold">Wholesale Tier</span>}
+                                        {p.isBulkSupply && <span className="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded uppercase font-bold">Bulk Exclusive</span>}
+                                    </div>
                                 </div>
                                 </td>
                                 
@@ -339,34 +348,55 @@ const ProductManager = () => {
               </div>
 
               <div>
-                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Retail Price (₦)</label>
+                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Retail/Base Price (₦)</label>
                    <input type="number" className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" name="price" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} required />
               </div>
 
-              {/* 🚀 NEW: Wholesale UI Block */}
-              <div className="col-span-2 border-t border-gray-100 dark:border-gray-700 pt-6 mt-2">
-                  <label className="flex items-center gap-2 cursor-pointer mb-4">
-                      <input 
-                          type="checkbox" 
-                          checked={formData.isWholesale}
-                          onChange={(e) => setFormData({...formData, isWholesale: e.target.checked})}
-                          className="w-4 h-4 text-palmeGreen rounded focus:ring-palmeGreen"
-                      />
-                      <span className="font-bold text-gray-700 dark:text-gray-300">Enable Wholesale Tier</span>
-                  </label>
+              
+              <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-100 dark:border-gray-700 pt-6 mt-2">
                   
-                  {formData.isWholesale && (
-                      <div className="grid grid-cols-2 gap-6 bg-green-50 dark:bg-green-900/10 p-4 rounded-xl border border-green-100 dark:border-green-900/30 animate-fade-in-up">
-                          <div>
-                              <label className="block text-xs font-bold text-green-800 dark:text-green-400 uppercase mb-1">Min. Order Qty (MOQ)</label>
-                              <input type="number" className="w-full p-3 border rounded-lg bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" name="moq" value={formData.moq} onChange={(e) => setFormData({...formData, moq: e.target.value})} required={formData.isWholesale} placeholder="e.g. 50" />
+                  
+                  <div className="bg-green-50 dark:bg-green-900/10 p-4 rounded-xl border border-green-100 dark:border-green-900/30">
+                      <label className="flex items-center gap-2 cursor-pointer mb-4">
+                          <input type="checkbox" checked={formData.isWholesale} onChange={(e) => setFormData({...formData, isWholesale: e.target.checked})} className="w-4 h-4 text-palmeGreen rounded focus:ring-palmeGreen" />
+                          <span className="font-bold text-green-800 dark:text-green-400">Wholesale Tier</span>
+                      </label>
+                      
+                      {formData.isWholesale && (
+                          <div className="space-y-4 animate-fade-in-up">
+                              <div>
+                                  <label className="block text-[10px] font-bold text-green-700 uppercase mb-1">Qty Needed for Discount</label>
+                                  <input type="number" className="w-full p-2 border rounded bg-white dark:bg-gray-700" name="moq" value={formData.moq} onChange={(e) => setFormData({...formData, moq: e.target.value})} required={formData.isWholesale} placeholder="e.g. 50" />
+                              </div>
+                              <div>
+                                  <label className="block text-[10px] font-bold text-green-700 uppercase mb-1">Discounted Price (₦)</label>
+                                  <input type="number" className="w-full p-2 border rounded bg-white dark:bg-gray-700" name="wholesalePrice" value={formData.wholesalePrice} onChange={(e) => setFormData({...formData, wholesalePrice: e.target.value})} required={formData.isWholesale} placeholder="Price per unit" />
+                              </div>
                           </div>
-                          <div>
-                              <label className="block text-xs font-bold text-green-800 dark:text-green-400 uppercase mb-1">Wholesale Price (₦)</label>
-                              <input type="number" className="w-full p-3 border rounded-lg bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" name="wholesalePrice" value={formData.wholesalePrice} onChange={(e) => setFormData({...formData, wholesalePrice: e.target.value})} required={formData.isWholesale} placeholder="Discounted Price" />
+                      )}
+                  </div>
+
+                  
+                  <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                      <label className="flex items-center gap-2 cursor-pointer mb-4">
+                          <input type="checkbox" checked={formData.isBulkSupply} onChange={(e) => setFormData({...formData, isBulkSupply: e.target.checked})} className="w-4 h-4 text-blue-600 rounded focus:ring-blue-600" />
+                          <span className="font-bold text-blue-800 dark:text-blue-400">Bulk Supply Exclusive</span>
+                      </label>
+                      
+                      {formData.isBulkSupply && (
+                          <div className="space-y-4 animate-fade-in-up">
+                              <div>
+                                  <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Unit Label</label>
+                                  <input type="text" className="w-full p-2 border rounded bg-white dark:bg-gray-700" name="bulkUnitLabel" value={formData.bulkUnitLabel} onChange={(e) => setFormData({...formData, bulkUnitLabel: e.target.value})} required={formData.isBulkSupply} placeholder="e.g. Pack, Pallet, Carton" />
+                              </div>
+                              <div>
+                                  <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Absolute Minimum Order Qty</label>
+                                  <input type="number" className="w-full p-2 border rounded bg-white dark:bg-gray-700" name="bulkMinQty" value={formData.bulkMinQty} onChange={(e) => setFormData({...formData, bulkMinQty: e.target.value})} required={formData.isBulkSupply} placeholder="e.g. 5" />
+                              </div>
                           </div>
-                      </div>
-                  )}
+                      )}
+                  </div>
+
               </div>
 
               <div>
