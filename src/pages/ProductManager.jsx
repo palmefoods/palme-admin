@@ -26,7 +26,7 @@ const ProductManager = () => {
   const [formData, setFormData] = useState({
     name: '', size: '500ml', price: '', weightKg: '', description: '', image: '', stock: '',
     isWholesale: false, moq: '', wholesalePrice: '',
-    isBulkSupply: false, bulkUnitLabel: 'Pack', bulkMinQty: '' 
+    isBulkSupply: false, bulkUnitLabel: 'Pack', bulkMinQty: '', itemsPerBulkUnit: '' 
   });
 
   useEffect(() => {
@@ -74,7 +74,8 @@ const ProductManager = () => {
       wholesalePrice: product.wholesalePrice || '',
       isBulkSupply: product.isBulkSupply || false, 
       bulkUnitLabel: product.bulkUnitLabel || 'Pack',
-      bulkMinQty: product.bulkMinQty || ''
+      bulkMinQty: product.bulkMinQty || '',
+      itemsPerBulkUnit: product.itemsPerBulkUnit || '' 
     });
     setShowModal(true);
   };
@@ -92,7 +93,8 @@ const ProductManager = () => {
         wholesalePrice: Number(formData.wholesalePrice) || 0,
         isBulkSupply: Boolean(formData.isBulkSupply), 
         bulkUnitLabel: formData.bulkUnitLabel || 'Pack',
-        bulkMinQty: Number(formData.bulkMinQty) || 1
+        bulkMinQty: Number(formData.bulkMinQty) || 1,
+        itemsPerBulkUnit: Number(formData.itemsPerBulkUnit) || 1 
       };
 
       if (editingProduct) {
@@ -104,7 +106,7 @@ const ProductManager = () => {
       }
       setShowModal(false);
       setEditingProduct(null);
-      setFormData({ name: '', size: '500ml', price: '', weightKg: '', description: '', image: '', stock: '', isWholesale: false, moq: '', wholesalePrice: '', isBulkSupply: false, bulkUnitLabel: 'Pack', bulkMinQty: '' });
+      setFormData({ name: '', size: '500ml', price: '', weightKg: '', description: '', image: '', stock: '', isWholesale: false, moq: '', wholesalePrice: '', isBulkSupply: false, bulkUnitLabel: 'Pack', bulkMinQty: '', itemsPerBulkUnit: '' });
       fetchProducts();
     } catch (err) {
       toast.error("Operation failed");
@@ -171,7 +173,7 @@ const ProductManager = () => {
             </div>
 
             <button 
-            onClick={() => { setEditingProduct(null); setFormData({ name: '', size: '500ml', price: '', weightKg: '', description: '', image: '', stock: '', isWholesale: false, moq: '', wholesalePrice: '', isBulkSupply: false, bulkUnitLabel: 'Pack', bulkMinQty: '' }); setShowModal(true); }}
+            onClick={() => { setEditingProduct(null); setFormData({ name: '', size: '500ml', price: '', weightKg: '', description: '', image: '', stock: '', isWholesale: false, moq: '', wholesalePrice: '', isBulkSupply: false, bulkUnitLabel: 'Pack', bulkMinQty: '', itemsPerBulkUnit: '' }); setShowModal(true); }}
             className="bg-palmeGreen text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-green-800 transition-colors flex-1 md:flex-initial justify-center"
             >
             <Plus size={20} /> Add Product
@@ -196,7 +198,7 @@ const ProductManager = () => {
                             <tr>
                             <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Product</th>
                             <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Stock</th> 
-                            <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Price</th>
+                            <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Unit Price</th>
                             <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Size</th>
                             <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-right">Actions</th>
                             </tr>
@@ -321,7 +323,7 @@ const ProductManager = () => {
               <div className="grid grid-cols-2 gap-6">
                  <div>
                     <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1 flex items-center gap-1">
-                        <Layers size={14}/> Stock Quantity
+                        <Layers size={14}/> Stock Quantity (Individual Bottles)
                     </label>
                     <input 
                         type="number" 
@@ -330,11 +332,11 @@ const ProductManager = () => {
                         value={formData.stock} 
                         onChange={(e) => setFormData({...formData, stock: e.target.value})} 
                         required 
-                        placeholder="e.g. 50"
+                        placeholder="e.g. 150"
                     />
                  </div>
                  <div>
-                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Weight (Kg) - For Shipping</label>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Weight (Kg) per bottle</label>
                     <input 
                         type="number" 
                         step="0.1"
@@ -348,7 +350,7 @@ const ProductManager = () => {
               </div>
 
               <div>
-                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Retail/Base Price (₦)</label>
+                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Price per Individual Unit/Bottle (₦)</label>
                    <input type="number" className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" name="price" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} required />
               </div>
 
@@ -389,9 +391,16 @@ const ProductManager = () => {
                                   <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Unit Label</label>
                                   <input type="text" className="w-full p-2 border rounded bg-white dark:bg-gray-700" name="bulkUnitLabel" value={formData.bulkUnitLabel} onChange={(e) => setFormData({...formData, bulkUnitLabel: e.target.value})} required={formData.isBulkSupply} placeholder="e.g. Pack, Pallet, Carton" />
                               </div>
-                              <div>
-                                  <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Absolute Minimum Order Qty</label>
-                                  <input type="number" className="w-full p-2 border rounded bg-white dark:bg-gray-700" name="bulkMinQty" value={formData.bulkMinQty} onChange={(e) => setFormData({...formData, bulkMinQty: e.target.value})} required={formData.isBulkSupply} placeholder="e.g. 5" />
+                              <div className="grid grid-cols-2 gap-2">
+                                  
+                                  <div>
+                                      <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Items per {formData.bulkUnitLabel || 'Unit'}</label>
+                                      <input type="number" className="w-full p-2 border rounded bg-white dark:bg-gray-700" name="itemsPerBulkUnit" value={formData.itemsPerBulkUnit} onChange={(e) => setFormData({...formData, itemsPerBulkUnit: e.target.value})} required={formData.isBulkSupply} placeholder="e.g. 12" />
+                                  </div>
+                                  <div>
+                                      <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Min. {formData.bulkUnitLabel || 'Unit'}s to Order</label>
+                                      <input type="number" className="w-full p-2 border rounded bg-white dark:bg-gray-700" name="bulkMinQty" value={formData.bulkMinQty} onChange={(e) => setFormData({...formData, bulkMinQty: e.target.value})} required={formData.isBulkSupply} placeholder="e.g. 5" />
+                                  </div>
                               </div>
                           </div>
                       )}
