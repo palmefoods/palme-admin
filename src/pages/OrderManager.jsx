@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useLocation } from 'react-router-dom'; // ✅ Added to read URL
+import { useLocation } from 'react-router-dom';
 import { Search, Download, Eye, ChevronLeft, ChevronRight, Filter, PlusCircle, Trash2, X, Package, User, MapPin, Calendar, Printer, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const OrderManager = () => {
-  const location = useLocation(); // ✅ Hook to access URL
+  const location = useLocation(); 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -19,12 +19,10 @@ const OrderManager = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // 1. Fetch Orders
   useEffect(() => {
     fetchOrders();
   }, []);
 
-  // 2. ✅ LISTENER: Check URL for search query coming from Sidebar
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const query = params.get('search');
@@ -36,7 +34,6 @@ const OrderManager = () => {
   const fetchOrders = async () => {
     try {
       const res = await axios.get(`${API_URL}/api/orders`);
-      // Sort orders by newest first immediately upon fetching
       const sorted = res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setOrders(sorted);
     } catch (err) {
@@ -144,11 +141,9 @@ const OrderManager = () => {
     } catch (err) { toast.error("Check console - check Paystack logic"); }
   };
 
-  // ✅ Smarter Search Logic
   const filteredOrders = orders.filter(order => {
     const query = searchTerm.replace('#', '').toLowerCase();
     
-    // Safety check for null values
     const id = order._id ? order._id.toLowerCase() : "";
     const displayId = order._id ? order._id.slice(-6).toLowerCase() : "";
     const name = order.customer?.name ? order.customer.name.toLowerCase() : "";
@@ -295,7 +290,7 @@ const OrderManager = () => {
       </div>
 
       {selectedOrder && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1000] flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl animate-fade-in-up transition-colors">
             <div className="p-6 border-b dark:border-gray-700 flex justify-between items-start bg-gray-50 dark:bg-gray-700/50 rounded-t-2xl">
               <div>
