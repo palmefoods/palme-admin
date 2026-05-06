@@ -198,7 +198,7 @@ const ProductManager = () => {
                             <tr>
                             <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Product</th>
                             <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Stock</th> 
-                            <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Unit Price</th>
+                            <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Base Price</th>
                             <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Size</th>
                             <th className="p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-right">Actions</th>
                             </tr>
@@ -218,7 +218,7 @@ const ProductManager = () => {
                                     <p className="font-bold text-gray-800 dark:text-white">{p.name}</p>
                                     <div className="flex gap-2 mt-1">
                                         {p.isWholesale && <span className="text-[10px] bg-green-100 text-palmeGreen px-2 py-0.5 rounded uppercase font-bold">Wholesale Tier</span>}
-                                        {p.isBulkSupply && <span className="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded uppercase font-bold">Bulk Exclusive</span>}
+                                        {p.isBulkSupply && <span className="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded uppercase font-bold">Wholesale Item</span>}
                                     </div>
                                 </div>
                                 </td>
@@ -229,7 +229,7 @@ const ProductManager = () => {
                                         ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' 
                                         : 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
                                     }`}>
-                                            {p.stock || 0} Units
+                                            {p.stock || 0}
                                     </span>
                                 </td>
 
@@ -271,7 +271,7 @@ const ProductManager = () => {
                                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                                         (p.stock || 0) < 10 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
                                     }`}>
-                                            {p.stock} left
+                                            {p.stock}
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-end">
@@ -313,17 +313,26 @@ const ProductManager = () => {
                    <input className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" name="name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
                 </div>
                 <div>
-                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Size</label>
-                   <select className="w-full p-3 border rounded-lg bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" name="size" value={formData.size} onChange={(e) => setFormData({...formData, size: e.target.value})}>
-                     {['250ml', '500ml', '1 Litre', '2 Litres', '5 Litres', '10 Litres', '25 Litres (Keg)'].map(s => <option key={s} value={s}>{s}</option>)}
-                   </select>
+                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Size / Volume</label>
+                   
+                   <input 
+                      list="size-options"
+                      className="w-full p-3 border rounded-lg bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
+                      name="size" 
+                      value={formData.size} 
+                      onChange={(e) => setFormData({...formData, size: e.target.value})}
+                      placeholder="e.g. 500ml or Carton"
+                   />
+                   <datalist id="size-options">
+                     {['250ml', '500ml', '1 Litre', '2 Litres', '5 Litres', '10 Litres', '25 Litres (Keg)'].map(s => <option key={s} value={s} />)}
+                   </datalist>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-6">
                  <div>
                     <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1 flex items-center gap-1">
-                        <Layers size={14}/> Stock Quantity (Individual Bottles)
+                        <Layers size={14}/> Stock Quantity
                     </label>
                     <input 
                         type="number" 
@@ -336,7 +345,7 @@ const ProductManager = () => {
                     />
                  </div>
                  <div>
-                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Weight (Kg) per bottle</label>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Weight (Kg) per unit</label>
                     <input 
                         type="number" 
                         step="0.1"
@@ -350,7 +359,8 @@ const ProductManager = () => {
               </div>
 
               <div>
-                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Price per Individual Unit/Bottle (₦)</label>
+                   
+                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Base Price per Unit/Pack (₦)</label>
                    <input type="number" className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" name="price" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} required />
               </div>
 
@@ -361,7 +371,7 @@ const ProductManager = () => {
                   <div className="bg-green-50 dark:bg-green-900/10 p-4 rounded-xl border border-green-100 dark:border-green-900/30">
                       <label className="flex items-center gap-2 cursor-pointer mb-4">
                           <input type="checkbox" checked={formData.isWholesale} onChange={(e) => setFormData({...formData, isWholesale: e.target.checked})} className="w-4 h-4 text-palmeGreen rounded focus:ring-palmeGreen" />
-                          <span className="font-bold text-green-800 dark:text-green-400">Wholesale Tier</span>
+                          <span className="font-bold text-green-800 dark:text-green-400">Standard Wholesale Tier</span>
                       </label>
                       
                       {formData.isWholesale && (
@@ -382,23 +392,23 @@ const ProductManager = () => {
                   <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
                       <label className="flex items-center gap-2 cursor-pointer mb-4">
                           <input type="checkbox" checked={formData.isBulkSupply} onChange={(e) => setFormData({...formData, isBulkSupply: e.target.checked})} className="w-4 h-4 text-blue-600 rounded focus:ring-blue-600" />
-                          <span className="font-bold text-blue-800 dark:text-blue-400">Bulk Supply Exclusive</span>
+                          <span className="font-bold text-blue-800 dark:text-blue-400">Strict Wholesale Item (Packs)</span>
                       </label>
                       
                       {formData.isBulkSupply && (
                           <div className="space-y-4 animate-fade-in-up">
                               <div>
-                                  <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Unit Label</label>
+                                  <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Unit Label (e.g. Pack, Carton)</label>
                                   <input type="text" className="w-full p-2 border rounded bg-white dark:bg-gray-700" name="bulkUnitLabel" value={formData.bulkUnitLabel} onChange={(e) => setFormData({...formData, bulkUnitLabel: e.target.value})} required={formData.isBulkSupply} placeholder="e.g. Pack, Pallet, Carton" />
                               </div>
                               <div className="grid grid-cols-2 gap-2">
                                   
                                   <div>
-                                      <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Items per {formData.bulkUnitLabel || 'Unit'}</label>
+                                      <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Items inside {formData.bulkUnitLabel || 'Unit'}</label>
                                       <input type="number" className="w-full p-2 border rounded bg-white dark:bg-gray-700" name="itemsPerBulkUnit" value={formData.itemsPerBulkUnit} onChange={(e) => setFormData({...formData, itemsPerBulkUnit: e.target.value})} required={formData.isBulkSupply} placeholder="e.g. 12" />
                                   </div>
                                   <div>
-                                      <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Min. {formData.bulkUnitLabel || 'Unit'}s to Order</label>
+                                      <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Min. Order Limit</label>
                                       <input type="number" className="w-full p-2 border rounded bg-white dark:bg-gray-700" name="bulkMinQty" value={formData.bulkMinQty} onChange={(e) => setFormData({...formData, bulkMinQty: e.target.value})} required={formData.isBulkSupply} placeholder="e.g. 5" />
                                   </div>
                               </div>
