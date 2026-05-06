@@ -166,8 +166,8 @@ const AdminLayout = ({ children }) => {
         </div>
       </aside>
 
-      
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto relative z-0">
+      {/* 🚀 FIXED: Removed "relative z-0" from this main tag so the modal can escape! */}
+      <main className="flex-1 flex flex-col h-screen overflow-y-auto">
         
         
         <header className="bg-white dark:bg-gray-800 h-20 px-8 flex items-center justify-between border-b border-gray-100 dark:border-gray-700 sticky top-0 z-10 transition-colors duration-200">
