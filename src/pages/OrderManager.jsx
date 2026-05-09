@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useLocation } from 'react-router-dom';
-import { Search, Download, Eye, ChevronLeft, ChevronRight, Filter, PlusCircle, Trash2, X, Package, User, MapPin, Calendar, Printer, CheckCircle } from 'lucide-react';
+import { useLocation } from 'react-router-dom'; 
+import { Search, Download, Eye, ChevronLeft, ChevronRight, Filter, Trash2, X, Package, User, MapPin, Calendar, Printer, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -125,22 +125,6 @@ const OrderManager = () => {
     }
   };
 
-  const generateTestOrder = async () => {
-    const randomNum = Math.floor(Math.random() * 1000);
-    const dummyOrder = {
-      customer: { name: `Test User ${randomNum}`, email: `test${randomNum}@gmail.com`, phone: "08012345678", address: "Test Address" },
-      items: [{ name: "Palm Oil 5L", qty: 2, price: 12500 }],
-      totalAmount: 25000,
-      deliveryMethod: 'doorstep',
-      paymentReference: 'TEST_' + Date.now()
-    };
-    try { 
-        await axios.post(`${API_URL}/api/orders`, dummyOrder); 
-        fetchOrders(); 
-        toast.success("Test order added");
-    } catch (err) { toast.error("Check console - check Paystack logic"); }
-  };
-
   const filteredOrders = orders.filter(order => {
     const query = searchTerm.replace('#', '').toLowerCase();
     
@@ -201,8 +185,6 @@ const OrderManager = () => {
         </div>
 
         <div className="flex gap-3 w-full md:w-auto items-center">
-           <button onClick={generateTestOrder} className="flex items-center gap-2 bg-gray-800 text-white px-4 py-2.5 rounded-lg font-bold hover:bg-black transition-colors text-xs uppercase tracking-wider"><PlusCircle size={16} /> Test Order</button>
-
           <div className="relative">
             <Filter className="absolute left-3 top-3 text-gray-500" size={16} />
             <select 
@@ -346,7 +328,6 @@ const OrderManager = () => {
                             </div>
                         ))}
                     </div>
-                    
                     
                     <div className="mt-4 space-y-2 border-t dark:border-gray-700 pt-4">
                         <div className="flex justify-between text-sm">
